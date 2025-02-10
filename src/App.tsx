@@ -7,6 +7,7 @@ import Login from './pages/Login';
 import TriggerFiles from './pages/TriggerFiles';
 import ConnectFiles from './pages/ConnectFiles';
 import StaticFiles from './pages/StaticFiles';
+import CustomizedSection from './pages/CustomizedSectionPage';
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isAuthenticated } = useAuth();
@@ -24,6 +25,7 @@ function AppContent() {
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/" element={<Navigate to="/trigger-files" />} />
+          <Route path="/customized-section/:sectionId" element={<CustomizedSection />} />
           <Route
             path="/trigger-files"
             element={
