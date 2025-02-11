@@ -2,11 +2,12 @@ import React, { useEffect, useState } from 'react';
 import { FileEntry } from '../types';
 import FileList from '../components/FileList';
 import { useAuth } from '../context/AuthContext';
-import { Upload, Download } from 'lucide-react';
+import { Upload } from 'lucide-react';
 
 const StaticFiles: React.FC = () => {
   const [files, setFiles] = useState<FileEntry[]>([]);
   const { token } = useAuth();
+  const [fileToDelete, setFileToDelete] = useState<string | null>(null);
 
   const fetchFiles = async () => {
     try {
@@ -23,8 +24,14 @@ const StaticFiles: React.FC = () => {
   };
 
   const handleDelete = async (id: string) => {
+    setFileToDelete(id);
+  };
+
+  const confirmDelete = async () => {
+    if (!fileToDelete) return;
+
     try {
-      await fetch(`http://localhost:5000/services/WareHouse/staticFile/delete/${id}`, {
+      await fetch(`http://localhost:5000/services/WareHouse/staticFile/delete/${fileToDelete}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -33,6 +40,8 @@ const StaticFiles: React.FC = () => {
       await fetchFiles();
     } catch (error) {
       console.error('Error deleting file:', error);
+    } finally {
+      setFileToDelete(null);
     }
   };
 
@@ -110,9 +119,32 @@ const StaticFiles: React.FC = () => {
           onDownload={handleDownload}
           files={files}
           onDelete={handleDelete}
-           // Pass the download function
         />
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {fileToDelete && (
+        <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-xl max-w-md w-full mx-4">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">Confirm Delete</h3>
+            <p className="text-sm text-gray-500 mb-4">Are you sure you want to delete this file? This action cannot be undone.</p>
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={() => setFileToDelete(null)}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-300"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDelete}
+                className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
