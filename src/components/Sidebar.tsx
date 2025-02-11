@@ -7,6 +7,7 @@ const Sidebar: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { token } = useAuth();
+  const [sectionToDelete, setSectionToDelete] = useState<string | null>(null);
 
   const staticNavItems = [
     { path: "/trigger-files", label: "Trigger Files", icon: Files },
@@ -17,7 +18,7 @@ const Sidebar: React.FC = () => {
   const [dynamicNavItems, setDynamicNavItems] = useState<{ path: string; label: string; id: string; description: string; }[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [sectionName, setSectionName] = useState("");
-  const [description, setDescription] = useState(""); // ✅ Fixed
+  const [description, setDescription] = useState("");
   
 
 
@@ -35,7 +36,7 @@ const Sidebar: React.FC = () => {
           const formattedSections = data.sections.map((section: any) => ({
             path: `/${section.name.toLowerCase().replace(/\s+/g, "-")}`,
             label: section.name,
-            id: section.sectionId, // Store section ID for deletion
+            id: section.sectionId,
             description: section.description.length > 10 ? section.description.substring(0, 10) + "..." : section.description,
           }));
           setDynamicNavItems(formattedSections);
@@ -49,6 +50,7 @@ const Sidebar: React.FC = () => {
   useEffect(() => {
     fetchSections();
   }, [token]);
+
   const handleCreateSection = async () => {
     if (!sectionName.trim()) return;
     try {
@@ -73,11 +75,16 @@ const Sidebar: React.FC = () => {
     setSectionName("");
     setDescription("");
   };
+
+  const handleDeleteClick = (sectionId: string) => {
+    setSectionToDelete(sectionId);
+  };
   
-  // Handle deleting a section
-  const handleDeleteSection = async (sectionId: string) => {
+  const confirmDelete = async () => {
+    if (!sectionToDelete) return;
+
     try {
-      const response = await fetch(`http://localhost:5000/services/WareHouse/customizedSection/${sectionId}`, {
+      const response = await fetch(`http://localhost:5000/services/WareHouse/customizedSection/${sectionToDelete}`, {
         method: "DELETE",
         headers: { "Authorization": `Bearer ${token}` },
       });
@@ -89,6 +96,8 @@ const Sidebar: React.FC = () => {
       }
     } catch (error) {
       console.error("Error deleting section:", error);
+    } finally {
+      setSectionToDelete(null);
     }
   };
 
@@ -126,43 +135,40 @@ const Sidebar: React.FC = () => {
       <h3 className="text-gray-500 text-sm font-bold px-6 py-2">Customized Sections</h3>
 
       {/* Dynamic Nav Items */}
-{/* Dynamic Nav Items */}
-<div className="py-2 flex-grow">
-  {dynamicNavItems.map(({ path, label, id, description }) => (
-    <div 
-      key={id}  
-      className={`w-full text-left px-6 py-3 flex justify-between items-center font-medium ${
-        location.pathname === `/customized-section/${id}` 
-          ? "bg-indigo-50 text-indigo-600 border-r-4 border-indigo-600" 
-          : "text-gray-600 hover:bg-gray-50"
-      }`}
-    >
-      <button
-        onClick={() => navigate(`/customized-section/${id}`)}  
-        className="flex items-center space-x-3 font-medium"
-      >
-        <FileBox className="w-5 h-5" />
-        <div className="flex flex-col">
-          <span>{label}</span>
-          <span className="text-xs text-gray-400">{description}</span>
-        </div>
-      </button>
+      <div className="py-2 flex-grow">
+        {dynamicNavItems.map(({ path, label, id, description }) => (
+          <div 
+            key={id}  
+            className={`w-full text-left px-6 py-3 flex justify-between items-center font-medium ${
+              location.pathname === `/customized-section/${id}` 
+                ? "bg-indigo-50 text-indigo-600 border-r-4 border-indigo-600" 
+                : "text-gray-600 hover:bg-gray-50"
+            }`}
+          >
+            <button
+              onClick={() => navigate(`/customized-section/${id}`)}  
+              className="flex items-center space-x-3 font-medium"
+            >
+              <FileBox className="w-5 h-5" />
+              <div className="flex flex-col">
+                <span>{label}</span>
+                <span className="text-xs text-gray-400">{description}</span>
+              </div>
+            </button>
 
-      {/* Delete Button aligned to the right */}
-      <button 
-        onClick={() => handleDeleteSection(id)} 
-        className="text-red-500 hover:text-red-700"
-      >
-        <Trash2 className="w-5 h-5" />
-      </button>
-    </div>
-  ))}
-</div>
+            <button 
+              onClick={() => handleDeleteClick(id)} 
+              className="text-red-500 hover:text-red-700"
+            >
+              <Trash2 className="w-5 h-5" />
+            </button>
+          </div>
+        ))}
+      </div>
 
-
-      {/* Modal for creating a new section */}
+      {/* Create Section Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-lg shadow-lg w-96">
             <h2 className="text-lg font-semibold mb-4">Create Section</h2>
             <input
@@ -179,11 +185,41 @@ const Sidebar: React.FC = () => {
               onChange={(e) => setDescription(e.target.value)}
             />
             <div className="flex justify-end space-x-2">
-              <button onClick={() => setIsModalOpen(false)} className="px-4 py-2 bg-gray-300 rounded-md">
+              <button 
+                onClick={() => setIsModalOpen(false)} 
+                className="px-4 py-2 bg-gray-300 rounded-md"
+              >
                 Cancel
               </button>
-              <button onClick={handleCreateSection} className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">
+              <button 
+                onClick={handleCreateSection} 
+                className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
+              >
                 Create
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {sectionToDelete && (
+        <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-xl max-w-md w-full mx-4">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">Confirm Delete</h3>
+            <p className="text-sm text-gray-500 mb-4">Are you sure you want to delete this section? This action cannot be undone.</p>
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={() => setSectionToDelete(null)}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-300"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDelete}
+                className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500"
+              >
+                Delete
               </button>
             </div>
           </div>
