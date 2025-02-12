@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Play, Square, Wifi, WifiOff, Table, Code, Clock, MoreVertical, ChevronUp, ChevronDown, Download, LineChart } from 'lucide-react';
+import { Play, Square, Wifi, WifiOff, Table, Code, Clock, MoreVertical, ChevronUp, ChevronDown, Download, LineChart, Upload } from 'lucide-react';
 import { Client } from 'paho-mqtt';
 import * as XLSX from 'xlsx';
 import { LineChart as RechartsLineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
@@ -34,6 +34,13 @@ const TestSpace: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [showDetails, setShowDetails] = useState(false);
   const [selectedMetric, setSelectedMetric] = useState<string>('');
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const [fileName, setFileName] = useState('');
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadError, setUploadError] = useState('');
+  const [useDefaultFileName, setUseDefaultFileName] = useState(true);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
 
   useEffect(() => {
     fetchConnections();
@@ -416,6 +423,12 @@ const TestSpace: React.FC = () => {
     return `${connectionName}_${timestamp}`;
   };
 
+  const showSuccessNotification = (message: string) => {
+    setSuccessMessage(message);
+    setShowSuccess(true);
+    setTimeout(() => setShowSuccess(false), 3000);
+  };
+
   const downloadJSON = () => {
     const blob = new Blob([JSON.stringify(receivedData.map(item => ({
       timestamp: item.timestamp,
@@ -427,6 +440,7 @@ const TestSpace: React.FC = () => {
     a.download = `${getFileName()}.json`;
     a.click();
     URL.revokeObjectURL(url);
+    showSuccessNotification('JSON file downloaded successfully!');
   };
 
   const downloadExcel = () => {
@@ -468,6 +482,7 @@ const TestSpace: React.FC = () => {
 
       // Generate Excel file
       XLSX.writeFile(workbook, `${getFileName()}.xlsx`);
+      showSuccessNotification('Excel file downloaded successfully!');
     } catch (error) {
       console.error('Error generating Excel file:', error);
       setError('Error generating Excel file: ' + error);
@@ -500,6 +515,96 @@ const TestSpace: React.FC = () => {
     a.download = `${getFileName()}.txt`;
     a.click();
     URL.revokeObjectURL(url);
+    showSuccessNotification('Text file downloaded successfully!');
+  };
+
+  const getDefaultFileName = () => {
+    const timestamp = new Date().toISOString()
+      .replace(/[:.]/g, '-')
+      .replace('T', '_')
+      .split('.')[0];
+    return `${selectedConnection?.connection_name}_${timestamp}`;
+  };
+
+  useEffect(() => {
+    if (useDefaultFileName) {
+      setFileName(getDefaultFileName());
+    }
+  }, [useDefaultFileName, selectedConnection]);
+
+  const handleUpload = async () => {
+    if (!fileName.trim()) {
+      setUploadError('Please enter a file name');
+      return;
+    }
+
+    setIsUploading(true);
+    setUploadError('');
+
+    try {
+      // Create workbook with current data
+      const workbook = XLSX.utils.book_new();
+      const excelData = receivedData.map(item => {
+        const baseData = {
+          'Arrival Time': formatTime(item.timestamp)
+        };
+
+        if (typeof item.data === 'object' && item.data !== null) {
+          const processedData = {};
+          Object.entries(item.data).forEach(([key, value]) => {
+            if (key === 'timestamp' || key === 'status') {
+              processedData[key] = value;
+            } else {
+              processedData[key] = typeof value === 'object' ? JSON.stringify(value) : value;
+            }
+          });
+          return {
+            ...baseData,
+            ...processedData
+          };
+        }
+        return baseData;
+      });
+
+      const worksheet = XLSX.utils.json_to_sheet(excelData);
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'MQTT Data');
+
+      // Convert workbook to binary string
+      const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+      const blob = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+
+      // Create FormData and append file
+      const formData = new FormData();
+      formData.append('file', blob, `${fileName}.xlsx`);
+
+      // Get auth token from localStorage
+      const authToken = localStorage.getItem('authToken');
+      if (!authToken) {
+        throw new Error('Authentication token not found');
+      }
+
+      // Upload to backend
+      const response = await fetch('http://localhost:5000/services/IotConnect/upload', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${authToken}`,
+        },
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error(`Upload failed: ${response.statusText}`);
+      }
+
+      setIsUploadModalOpen(false);
+      setFileName('');
+      showSuccessNotification('File uploaded successfully!');
+    } catch (error) {
+      console.error('Upload error:', error);
+      setUploadError(error.message || 'Failed to upload file');
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const LoadingSpinner = () => (
@@ -517,6 +622,26 @@ const TestSpace: React.FC = () => {
   return (
     <div className="flex-1 p-8">
       <div className="max-w-7xl mx-auto h-full">
+        {/* Success Notification - Moved below navbar */}
+        {showSuccess && (
+          <div className="fixed left-1/2 transform -translate-x-1/2 top-20 bg-green-500 text-white px-6 py-3 rounded-md shadow-lg z-50 flex items-center animate-fade-in-out">
+            <svg 
+              className="w-5 h-5 mr-2" 
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24"
+            >
+              <path 
+                strokeLinecap="round" 
+                strokeLinejoin="round" 
+                strokeWidth={2} 
+                d="M5 13l4 4L19 7" 
+              />
+            </svg>
+            {successMessage}
+          </div>
+        )}
+
         <div className="bg-white shadow-lg rounded-lg p-6 h-full flex flex-col">
           {/* Connection Selector */}
           <div className="mb-6 flex-none">
@@ -627,6 +752,14 @@ const TestSpace: React.FC = () => {
                             <Download className="h-4 w-4 mr-2" />
                             Text
                           </button>
+                          <button
+                            onClick={() => setIsUploadModalOpen(true)}
+                            className="px-3 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 flex items-center"
+                            title="Upload Excel"
+                          >
+                            <Upload className="h-4 w-4 mr-2" />
+                            Upload
+                          </button>
                         </div>
                       </div>
                     )}
@@ -705,10 +838,99 @@ const TestSpace: React.FC = () => {
               </div>
             </div>
           )}
+
+          {/* Upload Modal */}
+          {isUploadModalOpen && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+              <div className="bg-white rounded-lg p-6 w-96">
+                <h3 className="text-lg font-medium text-gray-900 mb-4">
+                  Upload Data
+                </h3>
+                <div className="mb-4">
+                  <div className="flex items-center mb-4">
+                    <input
+                      type="checkbox"
+                      id="useDefaultFileName"
+                      checked={useDefaultFileName}
+                      onChange={(e) => setUseDefaultFileName(e.target.checked)}
+                      className="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
+                    />
+                    <label htmlFor="useDefaultFileName" className="ml-2 block text-sm text-gray-900">
+                      Use default file name
+                    </label>
+                  </div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    File Name
+                  </label>
+                  <input
+                    type="text"
+                    value={fileName}
+                    onChange={(e) => {
+                      setFileName(e.target.value);
+                      setUseDefaultFileName(false);
+                    }}
+                    disabled={useDefaultFileName}
+                    placeholder="Enter file name (without extension)"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-gray-100 disabled:text-gray-500"
+                  />
+                  {useDefaultFileName && (
+                    <p className="mt-1 text-sm text-gray-500">
+                      Default: {fileName}
+                    </p>
+                  )}
+                </div>
+                {uploadError && (
+                  <div className="mb-4 text-sm text-red-600">
+                    {uploadError}
+                  </div>
+                )}
+                <div className="flex justify-end space-x-2">
+                  <button
+                    onClick={() => {
+                      setIsUploadModalOpen(false);
+                      setFileName('');
+                      setUploadError('');
+                      setUseDefaultFileName(true);
+                    }}
+                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md"
+                    disabled={isUploading}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleUpload}
+                    disabled={isUploading}
+                    className="px-4 py-2 text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 rounded-md disabled:opacity-50"
+                  >
+                    {isUploading ? 'Uploading...' : 'Upload'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
   );
 };
+
+// Update the CSS animation for the new position
+const styles = `
+@keyframes fadeInOut {
+  0% { opacity: 0; transform: translate(-50%, -20px); }
+  10% { opacity: 1; transform: translate(-50%, 0); }
+  90% { opacity: 1; transform: translate(-50%, 0); }
+  100% { opacity: 0; transform: translate(-50%, -20px); }
+}
+
+.animate-fade-in-out {
+  animation: fadeInOut 3s ease-in-out;
+}
+`;
+
+// Add the styles to the document
+const styleSheet = document.createElement("style");
+styleSheet.innerText = styles;
+document.head.appendChild(styleSheet);
 
 export default TestSpace; 
