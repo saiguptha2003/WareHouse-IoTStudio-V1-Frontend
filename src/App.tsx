@@ -13,6 +13,11 @@ import TriggerList from './pages/TriggerList';
 import Dashboard from './pages/Dashboard';
 import Trigger from './pages/Trigger';
 import TriggerSidebar from './components/TriggerSidebar';
+import IoTConnect from './pages/IoTConnect';
+import CreateConnection from './pages/CreateConnection';
+import IoTConnectSidebar from './components/IoTConnectSidebar';
+import IoTConnections from './pages/IoTConnections';
+import TestSpace from './pages/TestSpace';
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isAuthenticated } = useAuth();
@@ -24,13 +29,15 @@ function AppContent() {
   const location = useLocation();
   const isDashboard = location.pathname === '/dashboard';
   const isTriggerRoute = location.pathname.startsWith('/trigger');
+  const isConnectRoute = location.pathname.startsWith('/connect');
 
   return (
     <div className="min-h-screen bg-gray-100">
       <Navbar />
-      {isAuthenticated && !isDashboard && !isTriggerRoute && <Sidebar />}
+      {isAuthenticated && !isDashboard && !isTriggerRoute && !isConnectRoute && <Sidebar />}
       {isAuthenticated && isTriggerRoute && <TriggerSidebar />}
-      <div className={`${isAuthenticated && (isTriggerRoute || !isDashboard) ? 'ml-64' : ''} pt-16`}>
+      {isAuthenticated && isConnectRoute && <IoTConnectSidebar />}
+      <div className={`${isAuthenticated && (isTriggerRoute || !isDashboard || isConnectRoute) ? 'ml-64' : ''} pt-16`}>
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/" element={<Navigate to="/dashboard" />} />
@@ -74,6 +81,23 @@ function AppContent() {
               </ProtectedRoute>
             } />
           </Route>
+
+          <Route path="/connect" element={
+            <ProtectedRoute>
+              <IoTConnect />
+            </ProtectedRoute>
+          } />
+          <Route path="/connect/create" element={
+            <ProtectedRoute>
+              <CreateConnection />
+            </ProtectedRoute>
+          } />
+          <Route path="/connect/view" element={
+            <ProtectedRoute>
+              <IoTConnections />
+            </ProtectedRoute>
+          } />
+          <Route path="/connect/test-space" element={<TestSpace />} />
         </Routes>
       </div>
     </div>

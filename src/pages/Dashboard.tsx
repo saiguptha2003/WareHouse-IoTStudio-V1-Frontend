@@ -9,7 +9,7 @@ const Dashboard: React.FC = () => {
       <div className="max-w-[90rem] mx-auto">
         <h1 className="text-3xl font-bold text-gray-900 mb-8 text-center">Welcome to IoT Platform</h1>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-6xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
           {/* Triggers Card */}
           <div 
             onClick={() => navigate('/trigger')}
@@ -24,6 +24,24 @@ const Dashboard: React.FC = () => {
               <h2 className="text-2xl font-bold text-center text-gray-900 mb-2">Triggers</h2>
               <p className="text-gray-600 text-center">
                 Manage your IoT triggers and connections
+              </p>
+            </div>
+          </div>
+
+          {/* IoTConnect Card */}
+          <div 
+            onClick={() => navigate('/connect')}
+            className="bg-white rounded-xl shadow-lg overflow-hidden cursor-pointer transform transition-all duration-300 hover:scale-105 hover:shadow-xl"
+          >
+            <div className="p-8">
+              <div className="flex justify-center mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
+                </svg>
+              </div>
+              <h2 className="text-2xl font-bold text-center text-gray-900 mb-2">IoT Connect</h2>
+              <p className="text-gray-600 text-center">
+                Manage your IoT device connections
               </p>
             </div>
           </div>

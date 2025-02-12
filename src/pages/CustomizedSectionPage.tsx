@@ -25,7 +25,7 @@ const CustomizedSection: React.FC = () => {
       const data = await response.json();
       setFiles(data.files || []);
     } catch (error) {
-      console.error('Error fetching files:', error);~
+      console.error('Error fetching files:', error);
     }
   };
 
