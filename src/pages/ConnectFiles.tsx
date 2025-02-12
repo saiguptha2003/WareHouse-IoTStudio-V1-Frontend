@@ -2,11 +2,16 @@ import React, { useEffect, useState } from 'react';
 import { FileEntry } from '../types';
 import FileList from '../components/FileList';
 import { useAuth } from '../context/AuthContext';
+import { ArrowDownAZ } from 'lucide-react';
 
 const ConnectFiles: React.FC = () => {
   const [files, setFiles] = useState<FileEntry[]>([]);
   const { token } = useAuth();
   const [fileToDelete, setFileToDelete] = useState<string | null>(null);
+  const [sortConfig, setSortConfig] = useState<{
+    key: string;
+    direction: 'asc' | 'desc' | null;
+  }>({ key: '', direction: null });
 
   const fetchFiles = async () => {
     try {
@@ -64,6 +69,33 @@ const ConnectFiles: React.FC = () => {
     }
   };
 
+  const handleSort = (key: string) => {
+    let direction: 'asc' | 'desc' | null = 'asc';
+    
+    if (sortConfig.key === key) {
+      if (sortConfig.direction === 'asc') {
+        direction = 'desc';
+      } else if (sortConfig.direction === 'desc') {
+        direction = null;
+      }
+    }
+
+    setSortConfig({ key, direction });
+
+    if (direction === null) {
+      fetchFiles(); // Reset to original order
+      return;
+    }
+
+    const sortedFiles = [...files].sort((a, b) => {
+      if (a[key] < b[key]) return direction === 'asc' ? -1 : 1;
+      if (a[key] > b[key]) return direction === 'asc' ? 1 : -1;
+      return 0;
+    });
+
+    setFiles(sortedFiles);
+  };
+
   useEffect(() => {
     fetchFiles();
   }, []);
@@ -76,6 +108,8 @@ const ConnectFiles: React.FC = () => {
           files={files}
           onDelete={handleDelete}
           onDownload={handleDownload}
+          onSort={handleSort}
+          sortConfig={sortConfig}
         />
       </div>
 

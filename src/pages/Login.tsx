@@ -32,7 +32,7 @@ const Login: React.FC = () => {
       }
 
       login(data.token);
-      navigate('/trigger-files');
+      navigate('/dashboard');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {

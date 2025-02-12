@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Files, Link as LinkIcon, FileBox, Plus, Trash2 } from "lucide-react";
+import { Files, Link as LinkIcon, FileBox, Plus, Trash2, LayoutDashboard } from "lucide-react";
 import { useAuth } from '../context/AuthContext';
 
 const Sidebar: React.FC = () => {
@@ -10,9 +10,9 @@ const Sidebar: React.FC = () => {
   const [sectionToDelete, setSectionToDelete] = useState<string | null>(null);
 
   const staticNavItems = [
-    { path: "/trigger-files", label: "Trigger Files", icon: Files },
-    { path: "/connect-files", label: "Connect Files", icon: LinkIcon },
-    { path: "/static-files", label: "Static Files", icon: FileBox },
+    { path: "/warehouse/trigger-files", label: "Trigger Files", icon: Files },
+    { path: "/warehouse/connect-files", label: "Connect Files", icon: LinkIcon },
+    { path: "/warehouse/static-files", label: "Static Files", icon: FileBox },
   ];
 
   const [dynamicNavItems, setDynamicNavItems] = useState<{ path: string; label: string; id: string; description: string; }[]>([]);
@@ -34,7 +34,7 @@ const Sidebar: React.FC = () => {
         const data = await response.json();
         if (data.sections) {
           const formattedSections = data.sections.map((section: any) => ({
-            path: `/${section.name.toLowerCase().replace(/\s+/g, "-")}`,
+            path: `/warehouse/customized-section/${section.sectionId}`,
             label: section.name,
             id: section.sectionId,
             description: section.description.length > 10 ? section.description.substring(0, 10) + "..." : section.description,
@@ -103,6 +103,17 @@ const Sidebar: React.FC = () => {
 
   return (
     <div className="h-screen w-64 bg-white shadow-lg fixed left-0 top-16 flex flex-col">
+      {/* Dashboard Button */}
+      <div className="py-3 border-b border-gray-200">
+        <button
+          onClick={() => navigate('/dashboard')}
+          className="w-full text-left px-8 py-3 flex items-center space-x-3 font-bold text-gray-700 hover:bg-gray-50"
+        >
+          <LayoutDashboard className="w-5 h-5 mr-2" />
+          Dashboard
+        </button>
+      </div>
+
       {/* Create Section Button */}
       <div className="py-5">
         <button
@@ -140,13 +151,13 @@ const Sidebar: React.FC = () => {
           <div 
             key={id}  
             className={`w-full text-left px-6 py-3 flex justify-between items-center font-medium ${
-              location.pathname === `/customized-section/${id}` 
+              location.pathname === `/warehouse/customized-section/${id}` 
                 ? "bg-indigo-50 text-indigo-600 border-r-4 border-indigo-600" 
                 : "text-gray-600 hover:bg-gray-50"
             }`}
           >
             <button
-              onClick={() => navigate(`/customized-section/${id}`)}  
+              onClick={() => navigate(`/warehouse/customized-section/${id}`)}  
               className="flex items-center space-x-3 font-medium"
             >
               <FileBox className="w-5 h-5" />

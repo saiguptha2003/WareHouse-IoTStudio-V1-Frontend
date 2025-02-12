@@ -1,24 +1,45 @@
 import React from 'react';
-import { Trash2 } from 'lucide-react';
+import { Trash2, ArrowDownAZ } from 'lucide-react';
 import { FileEntry } from '../types';
 
 interface FileListProps {
   files: FileEntry[];
   onDelete: (id: string) => void;
   onDownload?: (id: string) => void;
+  onSort: (key: string) => void;
+  sortConfig: {
+    key: string;
+    direction: 'asc' | 'desc' | null;
+  };
 }
 
-const FileList: React.FC<FileListProps> = ({ files, onDelete, onDownload }) => {
+const FileList: React.FC<FileListProps> = ({ files, onDelete, onDownload, onSort, sortConfig }) => {
+  const getSortIconColor = (columnKey: string) => {
+    return sortConfig.key === columnKey && sortConfig.direction !== null
+      ? 'text-green-500'
+      : 'text-gray-400';
+  };
+
+  const renderSortIcon = (columnKey: string) => {
+    return (
+      <ArrowDownAZ
+        className={`inline-block ml-1 h-4 w-4 cursor-pointer ${getSortIconColor(columnKey)} 
+          ${sortConfig.key === columnKey && sortConfig.direction === 'desc' ? 'transform rotate-180' : ''}`}
+        onClick={() => onSort(columnKey)}
+      />
+    );
+  };
+
   return (
     <div className="overflow-x-auto">
       <table className="min-w-full divide-y divide-gray-200">
         <thead className="bg-gray-50">
           <tr>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Filename
+              Filename {renderSortIcon('filename')}
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Timestamp
+              Timestamp {renderSortIcon('timeStamp')}
             </th>
             <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
               Actions
