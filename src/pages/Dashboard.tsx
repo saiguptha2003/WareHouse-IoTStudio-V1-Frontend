@@ -63,6 +63,24 @@ const Dashboard: React.FC = () => {
               </p>
             </div>
           </div>
+
+          {/* SelfHost Card */}
+          <div 
+            onClick={() => navigate('/selfhost')}
+            className="bg-white rounded-xl shadow-lg overflow-hidden cursor-pointer transform transition-all duration-300 hover:scale-105 hover:shadow-xl"
+          >
+            <div className="p-8">
+              <div className="flex justify-center mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01" />
+                </svg>
+              </div>
+              <h2 className="text-2xl font-bold text-center text-gray-900 mb-2">SelfHost</h2>
+              <p className="text-gray-600 text-center">
+                Manage your self-hosted MQTT brokers
+              </p>
+            </div>
+          </div>
         </div>
       </div>
     </div>

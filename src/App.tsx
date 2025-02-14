@@ -18,6 +18,8 @@ import CreateConnection from './pages/CreateConnection';
 import IoTConnectSidebar from './components/IoTConnectSidebar';
 import IoTConnections from './pages/IoTConnections';
 import TestSpace from './pages/TestSpace';
+import SelfHost from './pages/SelfHost';
+import CreateHost from './pages/CreateHost';
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isAuthenticated } = useAuth();
@@ -30,11 +32,12 @@ function AppContent() {
   const isDashboard = location.pathname === '/dashboard';
   const isTriggerRoute = location.pathname.startsWith('/trigger');
   const isConnectRoute = location.pathname.startsWith('/connect');
+  const isSelfHostRoute = location.pathname.startsWith('/selfhost');
 
   return (
     <div className="min-h-screen bg-gray-100">
       <Navbar />
-      {isAuthenticated && !isDashboard && !isTriggerRoute && !isConnectRoute && <Sidebar />}
+      {isAuthenticated && !isDashboard && !isTriggerRoute && !isConnectRoute && !isSelfHostRoute && <Sidebar />}
       {isAuthenticated && isTriggerRoute && <TriggerSidebar />}
       {isAuthenticated && isConnectRoute && <IoTConnectSidebar />}
       <div className={`${isAuthenticated && (isTriggerRoute || !isDashboard || isConnectRoute) ? 'ml-64' : ''} pt-16`}>
@@ -98,13 +101,17 @@ function AppContent() {
             </ProtectedRoute>
           } />
           <Route path="/connect/test-space" element={<TestSpace />} />
+          <Route path="/selfhost" element={<SelfHost />}>
+            <Route index element={<div className="p-8">Select an option from the sidebar</div>} />
+            <Route path="create-host" element={<CreateHost />} />
+          </Route>
         </Routes>
       </div>
     </div>
   );
 }
 
-function App() {
+const App: React.FC = () => {
   return (
     <AuthProvider>
       <Router>
@@ -112,6 +119,6 @@ function App() {
       </Router>
     </AuthProvider>
   );
-}
+};
 
 export default App

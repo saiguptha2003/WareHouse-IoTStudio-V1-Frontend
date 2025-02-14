@@ -13,11 +13,11 @@ const Navbar: React.FC = () => {
         <div className="flex justify-between h-16">
           <div className="flex-shrink-0 flex items-center">
           <img
-              src="src/components/public/warehouse.png"
+              src="images/warehouse.png"
               alt="Warehouse Logo"
               className="h-15 w-14"
             />
-            <span className="text-xl font-bold text-gray-800">Warehouse</span>
+            <span className="text-xl font-bold text-gray-800">IoT-Studio</span>
           </div>
           <div className="flex items-center">
             {isAuthenticated ? (

@@ -45,12 +45,12 @@ const Login: React.FC = () => {
       <div className="max-w-md w-full space-y-8 text-center">
         <div className="flex justify-center">
           <img
-            src="src\components\public\warehouse.png"
+            src="images/warehouse.png"
             alt="Warehouse Logo"
-            className="h-32 w-32" // Increased size
+            className="h-`40` w-40" // Increased size
           />
         </div>
-        <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+        <h2 className="mt-6 text-center text-3xl font-bold text-gray-900">
           Sign in to your account
         </h2>
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
