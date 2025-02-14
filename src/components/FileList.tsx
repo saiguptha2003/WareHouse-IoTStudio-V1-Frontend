@@ -1,5 +1,5 @@
 import React from 'react';
-import { Trash2, ArrowDownAZ } from 'lucide-react';
+import { Trash2, ArrowDownAZ, Download } from 'lucide-react';
 import { FileEntry } from '../types';
 
 interface FileListProps {
@@ -61,7 +61,7 @@ const FileList: React.FC<FileListProps> = ({ files, onDelete, onDownload, onSort
                     onClick={() => onDownload(file.uuid)}
                     className="text-indigo-600 hover:text-indigo-900 mr-4"
                   >
-                    Download
+                     <Download className="h-4 w-4 mr-2" />
                   </button>
                 )}
                 <button

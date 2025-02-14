@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { ArrowDownAZ } from 'lucide-react';
+import { ArrowDownAZ, Download } from 'lucide-react';
 
+import { Trash2 } from 'lucide-react';
 interface TriggerFile {
   trigger_id: string;
   trigger_name: string;
@@ -205,14 +206,14 @@ const TriggerFiles: React.FC = () => {
                         onClick={() => handleDownload(file.trigger_id)}
                         className="text-indigo-600 hover:text-indigo-900 mr-4"
                       >
-                        Download
+                         <Download className="h-4 w-4 mr-2" />
                       </button>
                     )}
                     <button
                       onClick={() => handleDelete(file.trigger_id)}
                       className="text-red-600 hover:text-red-900"
                     >
-                      Delete
+                       <Trash2 className="w-4 h-4" />
                     </button>
                   </td>
                 </tr>
